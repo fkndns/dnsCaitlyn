@@ -12,7 +12,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.01
+    local Version = 3.1
     
     local Files = {
         Lua = {
@@ -418,11 +418,18 @@ function Caitlyn:Menu()
 end
 
 function Caitlyn:Spells()
-    QSpellData = {speed = 2200, range = 1300, delay = 0.625, radius = 90, collision = {}, type = "linear"}
-	WSpellData = {speed = math.huge, range = 800, delay = 0.25, radius = 35, collision = {}, type = "circular"}
-	ESpellData = {speed = math.huge, range = 750, delay = 0.15, radius = 60, collision = {minion}, type = "linear"}
+    QSpellData = {speed = 2200, range = 1300, delay = 0.625, radius = 150, collision = {}, type = "linear"}
+	WSpellData = {speed = math.huge, range = 800, delay = 0.25, radius = 60, collision = {}, type = "circular"}
+	ESpellData = {speed = math.huge, range = 750, delay = 0.15, radius = 100, collision = {minion}, type = "linear"}
 end
 
+function Caitlyn:CastingChecks()
+	if not CastingQ or CastingW or CastingE or CastingR then
+		return true
+	else 
+		return false
+	end
+end
 
 function Caitlyn:Draw()
     if self.Menu.MakeDraw.UseDraws:Value() then
@@ -440,7 +447,12 @@ end
 function Caitlyn:Tick()
     if _G.JustEvade and _G.JustEvade:Evading() or (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or Game.IsChatOpen() or myHero.dead then return end
     target = GetTarget(1400)
+	--PrintChat(myHero.activeSpell.name)
     AARange = _G.SDK.Data:GetAutoAttackRange(myHero)
+	CastingQ = myHero.activeSpell.name == "CaitlynPiltoverPeacemaker"
+	CastingW = myHero.activeSpell.name == "CaitlynYordleTrap"
+	CastingE = myHero.activeSpell.name == "CaitlynEntrapment"
+	CastingR = myHero.activeSpell.name == "CaitlynAceintheHole"
     self:Logic()
 	self:KS()
 	self:LastHit()
@@ -461,29 +473,29 @@ end
 
 function Caitlyn:KS()
 	for i, enemy in pairs(EnemyHeroes) do
-		local RRange = 3500 + enemy.boundingRadius
-		if enemy and not enemy.dead and ValidTarget(enemy, RRange) then
+		local RRange = 3500 + myHero.boundingRadius + enemy.boundingRadius
+		if enemy and not enemy.dead and ValidTarget(enemy, RRange) and self:CanUse(_R, "KS") then
 			local RDamage = getdmg("R", enemy, myHero, myHero:GetSpellData(_R).level)
-			if self:CanUse(_R, "KS") and GetDistance(enemy.pos, myHero.pos) < RRange and GetDistance(enemy.pos, myHero.pos) > 900 and enemy.health < RDamage then
+			if GetDistance(enemy.pos) < RRange and GetDistance(enemy.pos) > 1300 and enemy.health < RDamage and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
 				Control.CastSpell(HK_R, enemy)
 			end
 		end
-		local QRange = 1300 + enemy.boundingRadius
-		if enemy and not enemy.dead and ValidTarget(enemy, QRange) then
+		local QRange = 1300 + myHero.boundingRadius + enemy.boundingRadius
+		if enemy and not enemy.dead and ValidTarget(enemy, QRange) and self:CanUse(_Q, "KS") then
 			local QDamage = getdmg("Q", enemy, myHero, myHero:GetSpellData(_Q).level)
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, enemy, QSpellData)
-			if pred.CastPos and _G.PremiumPrediction.HitChance.High(pred.HitChance) and self:CanUse(_Q, "KS") and enemy.health < QDamage and GetDistance(pred.CastPos) > 650 and GetDistance(pred.CastPos) < 1300 then
+			if pred.CastPos and _G.PremiumPrediction.HitChance.High(pred.HitChance) and enemy.health < QDamage and GetDistance(pred.CastPos) > 650 + myHero.boundingRadius + enemy.boundingRadius  and GetDistance(pred.CastPos) < QRange and Caitlyn:CastingChecks() and not _G.SDK.Attack:IsActive() then
 				Control.CastSpell(HK_Q, pred.CastPos)
 			end
 		end
-		local WRange = 800 + enemy.boundingRadius
+		local WRange = 800 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, WRange) and self:CanUse(_W, "TrapImmo") then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, enemy, WSpellData)
-			if pred.CastPos and _G.PremiumPrediction.HitChance.Immobile(pred.HitChance) and GetDistance(pred.CastPos) < 800 then
+			if pred.CastPos and _G.PremiumPrediction.HitChance.Immobile(pred.HitChance) and GetDistance(pred.CastPos) < WRange and IsImmobile(enemy) > 1 and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
 				Control.CastSpell(HK_W, pred.CastPos)
 			end
 		end
-		if enemy and not enemy.dead and GetDistance(enemy.pos, myHero.pos) < 300 + enemy.boundingRadius and IsFacing(enemy) and self:CanUse(_E, "NetGap") then
+		if enemy and not enemy.dead and GetDistance(enemy.pos) < 250 + myHero.boundingRadius + enemy.boundingRadius and IsFacing(enemy) and self:CanUse(_E, "NetGap") and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
 			Control.CastSpell(HK_E, enemy)
 		end
 	end
@@ -542,12 +554,18 @@ function Caitlyn:Logic()
     if target == nil then 
         return 
     end
+	local maxQRange = 1300 + myHero.boundingRadius + target.boundingRadius
+	local minQRange = 650 + myHero.boundingRadius + target.boundingRadius
+	local ERange = 750 + myHero.boundingRadius + target.boundingRadius
+	
     if Mode() == "Combo" and target then
 	--PrintChat("Combo Mode and Target")
-        if self:CanUse(_Q, "Combo") and ValidTarget(target, 1300 + target.boundingRadius)  then
+	
+	
+        if self:CanUse(_Q, "Combo") and ValidTarget(target, maxQRange) and Caitlyn:CastingChecks() and not _G.SDK.Attack:IsActive() then
 		--PrintChat("ValidTarget can Use q")
             local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QSpellData)
-			if pred.CastPos and pred.HitChance > self.Menu.QSpell.QComboHitChance:Value() and GetDistance(pred.CastPos) > 650 and GetDistance(pred.CastPos) < 1300 then
+			if pred.CastPos and pred.HitChance > self.Menu.QSpell.QComboHitChance:Value() and GetDistance(pred.CastPos) > minQRange and GetDistance(pred.CastPos) < maxQRange then
 			--PrintChat("Prediction cheks, ready to cast q")
 				Control.CastSpell(HK_Q, pred.CastPos)
 
@@ -555,21 +573,21 @@ function Caitlyn:Logic()
         end
 		if self:CanUse(_E, "Combo") and ValidTarget(target, 750 + target.boundingRadius) then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, ESpellData)
-			if pred.CastPos and pred.HitChance > self.Menu.ESpell.EComboHitChance:Value() and GetDistance(pred.CastPos)	< 750 then 
+			if pred.CastPos and pred.HitChance > self.Menu.ESpell.EComboHitChance:Value() and GetDistance(pred.CastPos)	< ERange and self:CastingChecks() and not _G.SDK.Attack:IsActive()then 
 				Control.CastSpell(HK_E, pred.CastPos)
 			end
 		end
 	end 
 	if Mode() == "Harass" and target then
-		if self:CanUse(_Q, "Harass") and ValidTarget(target, 1300 + target.boundingRadius)  then
+		if self:CanUse(_Q, "Harass") and ValidTarget(target, maxQRange) and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
             local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QSpellData)
-			if pred.CastPos and pred.HitChance > self.Menu.QSpell.QHarassHitChance:Value() and GetDistance(pred.CastPos) > 650 and GetDistance(pred.CastPos) < 1300 then
+			if pred.CastPos and pred.HitChance > self.Menu.QSpell.QHarassHitChance:Value() and GetDistance(pred.CastPos) > minQRange and GetDistance(pred.CastPos) < maxQRange then
 				Control.CastSpell(HK_Q, pred.CastPos)
 			end
         end
-		if self:CanUse(_E, "Harass") and ValidTarget(target, 750 + target.boundingRadius) then
+		if self:CanUse(_E, "Harass") and ValidTarget(target, ERange + target.boundingRadius) and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, ESpellData)
-			if pred.CastPos and pred.HitChance > self.Menu.ESpell.EHarassHitChanceHitChance:Value() and GetDistance < 750 then 
+			if pred.CastPos and pred.HitChance > self.Menu.ESpell.EHarassHitChanceHitChance:Value() and GetDistance < ERange then 
 				Control.CastSpell(HK_E, pred.CastPos)
 			end
 		end
@@ -596,7 +614,7 @@ function Caitlyn:LaneClear()
 				MinionsAround = CloseMinions
 			end
 		end
-		if SurroundedMinion ~= nil and GetDistance(SurroundedMinion.pos) < 1300 + myHero.boundingRadius then
+		if SurroundedMinion ~= nil and GetDistance(SurroundedMinion.pos) < 1300 + myHero.boundingRadius and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
 			Control.CastSpell(HK_Q, SurroundedMinion)
 		end
 	end
@@ -609,7 +627,7 @@ function Caitlyn:LastHit()
 			local minion = minions[i]
 			if GetDistance(minion.pos) > 650 and GetDistance(minion.pos) < 1300 and (minion.charName == "SRU_ChaosMinionSiege" or minion.charName == "SRU_OrderMinionSiege") then
 				local QDam = getdmg("Q", minion, myHero, myHero:GetSpellData(_Q).level)
-				if minion and not minion.dead and QDam >= minion.health then
+				if minion and not minion.dead and QDam >= minion.health and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
 					Control.CastSpell(HK_Q, minion)
 				end
 			end
