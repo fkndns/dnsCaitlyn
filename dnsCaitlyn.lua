@@ -12,7 +12,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.2
+    local Version = 3.3
     
     local Files = {
         Lua = {
@@ -471,13 +471,27 @@ function Caitlyn:Tick()
 	end
 end
 
+function Caitlyn:UseRMap(unit)
+	if 
+
+
+
+end
 function Caitlyn:KS()
 	for i, enemy in pairs(EnemyHeroes) do
 		local RRange = 3500 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, RRange) and self:CanUse(_R, "KS") then
 			local RDamage = getdmg("R", enemy, myHero, myHero:GetSpellData(_R).level)
 			if GetDistance(enemy.pos) < RRange and GetDistance(enemy.pos) > 1300 and enemy.health < RDamage and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
-				Control.CastSpell(HK_R, enemy)
+				if enemy.pos:ToScreen().onScreen then
+					Control.CastSpell(HK_R, enemy)
+				else
+					local MMSpot = Vector(enemy.pos):ToMM() 
+					local MouseSpotBefore = mousePos
+					Control.SetCursorPos(MMSpot.x, MMSpot.y)
+					Control.KeyDown(HK_R); Control.KeyUp(HK_R)
+					DelayAction(function() Control.SetCursorPos(MouseSpotBefore) end, 0.20)
+				end
 			end
 		end
 		local QRange = 1300 + myHero.boundingRadius + enemy.boundingRadius
