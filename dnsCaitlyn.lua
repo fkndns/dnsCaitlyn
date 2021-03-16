@@ -12,7 +12,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 2
+    local Version = 3
     
     local Files = {
         Lua = {
@@ -418,9 +418,9 @@ function Caitlyn:Menu()
 end
 
 function Caitlyn:Spells()
-    QSpellData = {speed = 2200, range = 1300, delay = 0.625, radius = 150, collision = {}, type = "linear"}
-	WSpellData = {speed = math.huge, range = 800, delay = 0.25, radius = 60, collision = {}, type = "circular"}
-	ESpellData = {speed = math.huge, range = 750, delay = 0.15, radius = 100, collision = {minion}, type = "linear"}
+    QSpellData = {speed = 2200, range = 1300, delay = 0.625, radius = 90, collision = {}, type = "linear"}
+	WSpellData = {speed = math.huge, range = 800, delay = 0.25, radius = 35, collision = {}, type = "circular"}
+	ESpellData = {speed = math.huge, range = 750, delay = 0.15, radius = 60, collision = {minion}, type = "linear"}
 end
 
 
