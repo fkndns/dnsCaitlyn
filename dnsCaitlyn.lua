@@ -12,7 +12,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.3
+    local Version = 3.4
     
     local Files = {
         Lua = {
@@ -504,7 +504,7 @@ function Caitlyn:KS()
 			end
 		end
 		local EPeelRange = 250 + myHero.boundingRadius + enemy.boundingRadius
-		if enemy and not enemy.dead and ValidTarget(enemy,EPeelRange) and self:CanUse(_E, "NetGap") and self:CastinChecks() and not _G.SDK.Attack:IsActive() then
+		if enemy and not enemy.dead and ValidTarget(enemy,EPeelRange) and self:CanUse(_E, "NetGap") and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
 			if GetDistance(enemy.pos) <= EPeelRange and IsFacing(enemy) and enemy.ms * 1.1 > myHero.ms then
 				Control.CastSpell(HK_E, enemy)
 			end
