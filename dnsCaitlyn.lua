@@ -471,12 +471,6 @@ function Caitlyn:Tick()
 	end
 end
 
-function Caitlyn:UseRMap(unit)
-	if 
-
-
-
-end
 function Caitlyn:KS()
 	for i, enemy in pairs(EnemyHeroes) do
 		local RRange = 3500 + myHero.boundingRadius + enemy.boundingRadius
