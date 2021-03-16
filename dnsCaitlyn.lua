@@ -12,7 +12,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 1
+    local Version = 2
     
     local Files = {
         Lua = {
@@ -397,7 +397,7 @@ function Caitlyn:Menu()
 	self.Menu.QSpell:MenuElement({id = "QHarassMana", name = "Mana %", value = 40, min = 0, max = 100, identifier = "%"})
 	self.Menu.QSpell:MenuElement({id = "QLaneClear", name = "LaneClear", value = false})
 	self.Menu.QSpell:MenuElement({id = "QLaneClearMana", name = "Mana %", value = 60, min = 0, max = 100, identifier = "%"})
-	self.Menu.QSpell:MenuElement({id = "QLastHit", name = "LastHit Cannon when out of aa range", value = true})
+	self.Menu.QSpell:MenuElement({id = "QLastHit", name = "LastHit Cannon when out of AA Range", value = true})
 	self.Menu.QSpell:MenuElement({id = "QKS", name = "KS", value = true})
 	self.Menu:MenuElement({id = "WSpell", name = "W", type = MENU})
 	self.Menu.WSpell:MenuElement({id = "WImmo", name = "Auto W immobile Targets", value = true})
@@ -410,7 +410,7 @@ function Caitlyn:Menu()
 	self.Menu.ESpell:MenuElement({id = "EGap", name = "Peel Meele Champs", value = true})
 	self.Menu:MenuElement({id = "RSpell", name = "R", type = MENU})
 	self.Menu.RSpell:MenuElement({id = "RKS", name = "KS", value = true})
-	self.Menu:MenuElement({id = "MakeDraw", name = "U wanna hav dravvs?", type = MENU})
+	self.Menu:MenuElement({id = "MakeDraw", name = "Nubody nees dravvs", type = MENU})
 	self.Menu.MakeDraw:MenuElement({id = "UseDraws", name = "U wanna hav dravvs?", value = false})
 	self.Menu.MakeDraw:MenuElement({id = "QDraws", name = "U wanna Q-Range dravvs?", value = false})
 	self.Menu.MakeDraw:MenuElement({id = "RDraws", name = "U wanna R-Range dravvs?", value = false})
