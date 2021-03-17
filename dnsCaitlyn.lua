@@ -10,7 +10,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.7
+    local Version = 3.8
     
     local Files = {
         Lua = {
@@ -417,7 +417,7 @@ function Caitlyn:Menu()
 end
 
 function Caitlyn:Spells()
-    QSpellData = {speed = 2200, range = 1300, delay = 0.625, radius = 150, collision = {}, type = "linear"}
+    QSpellData = {speed = 2200, range = 1300, delay = 0.625, radius = 120, collision = {}, type = "linear"}
 	WSpellData = {speed = math.huge, range = 800, delay = 0.25, radius = 60, collision = {}, type = "circular"}
 	ESpellData = {speed = math.huge, range = 750, delay = 0.15, radius = 100, collision = {minion}, type = "linear"}
 end
@@ -477,7 +477,7 @@ function Caitlyn:KS()
 	
 	if GetDistance(enemy.pos) < 800 then
 		count = count + 1
-		PrintChat(EnemiesAround)
+		--PrintChat(EnemiesAround)
 	end
 		local RRange = 3500 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, RRange) and self:CanUse(_R, "KS") then
@@ -498,7 +498,7 @@ function Caitlyn:KS()
 		end
 		local QRange = 1300 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, QRange) and self:CanUse(_Q, "KS") then
-			local QDamage = getdmg("Q", enemy, myHero, myHero:GetSpellData(_Q).level)
+			local QDamage = getdmg("Q", enemy, myHero, myHero:GetSpellData(_Q).level) * 0.6
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, enemy, QSpellData)
 			if pred.CastPos and _G.PremiumPrediction.HitChance.High(pred.HitChance) and enemy.health < QDamage and GetDistance(pred.CastPos) > 650 + myHero.boundingRadius + enemy.boundingRadius  and GetDistance(pred.CastPos) < QRange and Caitlyn:CastingChecks() and not _G.SDK.Attack:IsActive() then
 				Control.CastSpell(HK_Q, pred.CastPos)
@@ -643,7 +643,7 @@ function Caitlyn:LaneClear()
 end
 
 function Caitlyn:LastHit()
-	if self:CanUse(_Q, "LastHit") and (Mode() == "LastHit" or Mode() == "LaneClear") then
+	if self:CanUse(_Q, "LastHit") and (Mode() == "LastHit" or Mode() == "LaneClear" or Mode() == "Harass") then
 		local minions = _G.SDK.ObjectManager:GetEnemyMinions(1300)
 		for i = 1, #minions do
 			local minion = minions[i]
