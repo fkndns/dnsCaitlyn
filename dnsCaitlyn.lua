@@ -10,7 +10,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.5
+    local Version = 3.6
     
     local Files = {
         Lua = {
@@ -504,7 +504,7 @@ function Caitlyn:KS()
 		local WRange = 800 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, WRange) and self:CanUse(_W, "TrapImmo") then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, enemy, WSpellData)
-			if pred.CastPos and _G.PremiumPrediction.HitChance.Immobile(pred.HitChance) and GetDistance(pred.CastPos) < WRange and IsImmobile(enemy) > 1 and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
+			if pred.CastPos and _G.PremiumPrediction.HitChance.Immobile(pred.HitChance) and GetDistance(pred.CastPos) < WRange and IsImmobile(enemy) > 0.5 and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
 				Control.CastSpell(HK_W, pred.CastPos)
 			end
 		end
