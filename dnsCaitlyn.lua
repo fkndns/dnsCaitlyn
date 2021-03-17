@@ -10,7 +10,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.6
+    local Version = 3.7
     
     local Files = {
         Lua = {
@@ -384,6 +384,7 @@ local EnemyLoaded = false
 local attackedfirst = 0
 local WasInRange = false
 local casted = 0
+local EnemiesAround = count
 
 function Caitlyn:Menu()
     self.Menu = MenuElement({type = MENU, id = "Caitlyn", name = "dnsCaitlyn v0.1"})
@@ -470,22 +471,24 @@ function Caitlyn:Tick()
 end
 
 function Caitlyn:KS()
-	for i, enemy in pairs(EnemyHeroes) do
 	local count = 0
+	for i, enemy in pairs(EnemyHeroes) do
+	
+	
 	if GetDistance(enemy.pos) < 800 then
 		count = count + 1
-		--PrintChat(count)
+		PrintChat(EnemiesAround)
 	end
 		local RRange = 3500 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, RRange) and self:CanUse(_R, "KS") then
 			local RDamage = getdmg("R", enemy, myHero, myHero:GetSpellData(_R).level)
 			if GetDistance(enemy.pos) < RRange and GetDistance(enemy.pos) > 1300 and enemy.health < RDamage and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
-				if count <= 1 and IsUnderEnemyTurret(myHero.pos) then
+				if EnemiesAround == 0 and not IsUnderEnemyTurret(myHero.pos) then
 					if enemy.pos:ToScreen().onScreen then
 						Control.CastSpell(HK_R, enemy)
 					else
 						local MMSpot = Vector(enemy.pos):ToMM() 
-						local MouseSpotBefore = mousePosits
+						local MouseSpotBefore = mousePos
 						Control.SetCursorPos(MMSpot.x, MMSpot.y)
 						Control.KeyDown(HK_R); Control.KeyUp(HK_R)
 						DelayAction(function() Control.SetCursorPos(MouseSpotBefore) end, 0.20)
@@ -504,8 +507,10 @@ function Caitlyn:KS()
 		local WRange = 800 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, WRange) and self:CanUse(_W, "TrapImmo") then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, enemy, WSpellData)
-			if pred.CastPos and _G.PremiumPrediction.HitChance.Immobile(pred.HitChance) and GetDistance(pred.CastPos) < WRange and IsImmobile(enemy) > 0.5 and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
-				Control.CastSpell(HK_W, pred.CastPos)
+			if pred.CastPos and _G.PremiumPrediction.HitChance.Immobile(pred.HitChance) and GetDistance(pred.CastPos) < WRange and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
+				if IsImmobile(enemy) > 0.5 or enemy.ms <= 250 then
+					Control.CastSpell(HK_W, pred.CastPos)
+				end
 			end
 		end
 		local EPeelRange = 250 + myHero.boundingRadius + enemy.boundingRadius
@@ -515,6 +520,7 @@ function Caitlyn:KS()
 			end
 		end
 	end
+	EnemiesAround = count
 end
 
 function Caitlyn:CanUse(spell, mode)
