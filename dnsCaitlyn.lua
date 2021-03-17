@@ -1,9 +1,7 @@
 require "PremiumPrediction"
-require "GamsteronPrediction"
 require "DamageLib"
 require "2DGeometry"
 require "MapPositionGOS"
-require "GGPrediction"
 
 local EnemyHeroes = {}
 local AllyHeroes = {}
@@ -12,7 +10,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.4
+    local Version = 3.5
     
     local Files = {
         Lua = {
@@ -473,18 +471,25 @@ end
 
 function Caitlyn:KS()
 	for i, enemy in pairs(EnemyHeroes) do
+	local count = 0
+	if GetDistance(enemy.pos) < 800 then
+		count = count + 1
+		--PrintChat(count)
+	end
 		local RRange = 3500 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy, RRange) and self:CanUse(_R, "KS") then
 			local RDamage = getdmg("R", enemy, myHero, myHero:GetSpellData(_R).level)
 			if GetDistance(enemy.pos) < RRange and GetDistance(enemy.pos) > 1300 and enemy.health < RDamage and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
-				if enemy.pos:ToScreen().onScreen then
-					Control.CastSpell(HK_R, enemy)
-				else
-					local MMSpot = Vector(enemy.pos):ToMM() 
-					local MouseSpotBefore = mousePos
-					Control.SetCursorPos(MMSpot.x, MMSpot.y)
-					Control.KeyDown(HK_R); Control.KeyUp(HK_R)
-					DelayAction(function() Control.SetCursorPos(MouseSpotBefore) end, 0.20)
+				if count <= 1 and IsUnderEnemyTurret(myHero.pos) then
+					if enemy.pos:ToScreen().onScreen then
+						Control.CastSpell(HK_R, enemy)
+					else
+						local MMSpot = Vector(enemy.pos):ToMM() 
+						local MouseSpotBefore = mousePosits
+						Control.SetCursorPos(MMSpot.x, MMSpot.y)
+						Control.KeyDown(HK_R); Control.KeyUp(HK_R)
+						DelayAction(function() Control.SetCursorPos(MouseSpotBefore) end, 0.20)
+					end
 				end
 			end
 		end
@@ -505,7 +510,7 @@ function Caitlyn:KS()
 		end
 		local EPeelRange = 250 + myHero.boundingRadius + enemy.boundingRadius
 		if enemy and not enemy.dead and ValidTarget(enemy,EPeelRange) and self:CanUse(_E, "NetGap") and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
-			if GetDistance(enemy.pos) <= EPeelRange and IsFacing(enemy) and enemy.ms * 1.1 > myHero.ms then
+			if GetDistance(enemy.pos) <= EPeelRange and IsFacing(enemy) and (enemy.ms * 1.0 > myHero.ms or enemy.pathing.isDashing) then
 				Control.CastSpell(HK_E, enemy)
 			end
 		end
