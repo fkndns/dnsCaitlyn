@@ -10,7 +10,7 @@ local AllySpawnPos = nil
 
 do
     
-    local Version = 3.8
+    local Version = 4.0
     
     local Files = {
         Lua = {
@@ -55,6 +55,15 @@ do
 
 end
 
+local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6,}
+
+local function GetInventorySlotItem(itemID)
+    assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
+    for _, j in pairs({ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
+        if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+    end
+    return nil
+end
 
 local function IsNearEnemyTurret(pos, distance)
     --PrintChat("Checking Turrets")
@@ -387,7 +396,7 @@ local casted = 0
 local EnemiesAround = count
 
 function Caitlyn:Menu()
-    self.Menu = MenuElement({type = MENU, id = "Caitlyn", name = "dnsCaitlyn v0.1"})
+    self.Menu = MenuElement({type = MENU, id = "Caitlyn", name = "dnsCaitlyn"})
     self.Menu:MenuElement({id = "QSpell", name = "Q", type = MENU})
 	self.Menu.QSpell:MenuElement({id = "QCombo", name = "Combo", value = true})
 	self.Menu.QSpell:MenuElement({id = "QComboHitChance", name = "HitChance", value = 0.7, min = 0.1, max = 1.0, step = 0.1})
@@ -413,6 +422,9 @@ function Caitlyn:Menu()
 	self.Menu.MakeDraw:MenuElement({id = "UseDraws", name = "U wanna hav dravvs?", value = false})
 	self.Menu.MakeDraw:MenuElement({id = "QDraws", name = "U wanna Q-Range dravvs?", value = false})
 	self.Menu.MakeDraw:MenuElement({id = "RDraws", name = "U wanna R-Range dravvs?", value = false})
+	self.Menu:MenuElement({id = "Misc", name = "Items/Summs", type = MENU})
+	self.Menu.Misc:MenuElement({id = "Pots", name = "Auto Use Potions/Refill/Cookies", value = true})
+	self.Menu.Misc:MenuElement({id = "HeaBar", name = "Auto Use Heal / Barrier", value = true})
 
 end
 
@@ -456,6 +468,7 @@ function Caitlyn:Tick()
 	self:KS()
 	self:LastHit()
 	self:LaneClear()
+	self:Healing()
     if EnemyLoaded == false then
         local CountEnemy = 0
         for i, enemy in pairs(EnemyHeroes) do
@@ -508,7 +521,7 @@ function Caitlyn:KS()
 		if enemy and not enemy.dead and ValidTarget(enemy, WRange) and self:CanUse(_W, "TrapImmo") then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, enemy, WSpellData)
 			if pred.CastPos and _G.PremiumPrediction.HitChance.Immobile(pred.HitChance) and GetDistance(pred.CastPos) < WRange and self:CastingChecks() and not _G.SDK.Attack:IsActive()then
-				if IsImmobile(enemy) > 0.5 or enemy.ms <= 250 then
+				if (IsImmobile(enemy) > 0.5 or enemy.ms <= 250) and not BuffActive(enemy, "caitlynyordletrapdebuff") then
 					Control.CastSpell(HK_W, pred.CastPos)
 				end
 			end
@@ -517,6 +530,18 @@ function Caitlyn:KS()
 		if enemy and not enemy.dead and ValidTarget(enemy,EPeelRange) and self:CanUse(_E, "NetGap") and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
 			if GetDistance(enemy.pos) <= EPeelRange and IsFacing(enemy) and (enemy.ms * 1.0 > myHero.ms or enemy.pathing.isDashing) then
 				Control.CastSpell(HK_E, enemy)
+			end
+		end
+		if self.Menu.Misc.HeaBar:Value() and myHero.health / myHero.maxHealth <= 0.3 and enemy.activeSpell.target == myHero.handle then
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" then
+				Control.CastSpell(HK_SUMMONER_2)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" then
+				Control.CastSpell(HK_SUMMONER_1)
+			end
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerBarrier" then
+				Control.CastSpell(HK_SUMMONER_2)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBarrier" then
+				Control.CastSpell(HK_SUMMONER_1)
 			end
 		end
 	end
@@ -657,6 +682,24 @@ function Caitlyn:LastHit()
 	end
 end
 
+function Caitlyn:Healing()
+	if myHero.alive == false then return end 
+	
+	local ItemPot = GetInventorySlotItem(2003)
+	local ItemRefill = GetInventorySlotItem(2031)
+	local ItemCookie = GetInventorySlotItem(2010)
+	--PrintChat(ItemRefill)
+	if myHero.health / myHero.maxHealth <= 0.7 and not BuffActive(myHero, "Item2003") and self.Menu.Misc.Pots:Value() and ItemPot ~= nil then
+		Control.CastSpell(ItemHotKey[ItemPot])
+	end
+	if myHero.health / myHero.maxHealth <= 0.7 and not BuffActive(myHero, "ItemCrystalFlask") and self.Menu.Misc.Pots:Value() and myHero:GetItemData(ItemRefill).ammo > 0 and ItemRefill ~= nil then
+		Control.CastSpell(ItemHotKey[ItemRefill])
+	end
+	if (myHero.health / myHero.maxHealth <= 0.3 or myHero.mana / myHero.maxMana <= 0.2) and not BuffActive(myHero, "Item2010") and self.Menu.Misc.Pots:Value() and ItemCookie ~= nil then
+		Control.CastSpell(ItemHotKey[ItemCookie])
+	end
+	
+end
 function Caitlyn:OnPostAttack(args)
 end
 
