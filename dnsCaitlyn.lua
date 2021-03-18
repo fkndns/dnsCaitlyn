@@ -8,52 +8,6 @@ local AllyHeroes = {}
 local EnemySpawnPos = nil
 local AllySpawnPos = nil
 
-do
-    
-    local Version = 4.0
-    
-    local Files = {
-        Lua = {
-            Path = SCRIPT_PATH,
-            Name = "dnsCaitlyn.lua",
-            Url = "https://raw.githubusercontent.com/fkndns/dnsCaitlyn/main/dnsCaitlyn.lua"
-        },
-        Version = {
-            Path = SCRIPT_PATH,
-            Name = "dnsCaitlyn.version",
-            Url = "https://raw.githubusercontent.com/fkndns/dnsCaitlyn/main/dnsCaitlyn.version"    -- check if Raw Adress correct pls.. after you have create the version file on Github
-        }
-    }
-    
-    local function AutoUpdate()
-        
-        local function DownloadFile(url, path, fileName)
-            DownloadFileAsync(url, path .. fileName, function() end)
-            while not FileExist(path .. fileName) do end
-        end
-        
-        local function ReadFile(path, fileName)
-            local file = io.open(path .. fileName, "r")
-            local result = file:read()
-            file:close()
-            return result
-        end
-        
-        DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
-        local textPos = myHero.pos:To2D()
-        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
-        if NewVersion > Version then
-            DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
-            print("New dnsCaitlyn Version. Press 2x F6")     -- <-- you can change the massage for users here !!!!
-        else
-            print(Files.Version.Name .. ": No Updates Found")   --  <-- here too
-        end
-    
-    end
-    
-    AutoUpdate()
-
-end
 
 local ItemHotKey = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2,[ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6,}
 
