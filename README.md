@@ -14,5 +14,9 @@ wont use R KS when enemys are nearer then 800 range or when u r under enemy turr
 Draws are draws cmon
 Pots = Automatically uses Pots or Refillable at 70% health or lower, uses Cookies at 30% health or 20% Mana
 Auto Heal / Barrier if ur under 30% health and an enemy is attacking u
+Auto QSS / Cleanse = uses all qss items and summoner cleans when u are hard cced in a fight
+Evade = evading checked spells with galeforce / flash (flash only if below 40% health)
+DodgeAssist = gives direction assist to dodge skillshots as natural as possible
+KiteAssist = Keeps u in a kiting range in combo & harass mode, so u dont get to close to an enemmy
 
 have fun with it and send me Feedback (games, op gg. literally anything)
