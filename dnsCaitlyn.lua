@@ -676,7 +676,7 @@ function Caitlyn:Logic()
         end
 		if self:CanUse(_E, "Harass") and ValidTarget(target, ERange + target.boundingRadius) and self:CastingChecks() and not _G.SDK.Attack:IsActive() then
 			local pred = _G.PremiumPrediction:GetPrediction(myHero, target, ESpellData)
-			if pred.CastPos and pred.HitChance > self.Menu.ESpell.EHarassHitChanceHitChance:Value() and GetDistance < ERange then 
+			if pred.CastPos and pred.HitChance > self.Menu.ESpell.EHarassHitChance:Value() and GetDistance < ERange then 
 				Control.CastSpell(HK_E, pred.CastPos)
 			end
 		end
